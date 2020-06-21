@@ -2080,8 +2080,10 @@ blk_A16_tbl <-
 # -------------------------------------------------------------------------
 
 # BLOCK B -----------------------------------------------------------------
-# TODO: DER ER ET PROBLEM MED DENNE BLOCK: TAL MATCHER IKKE BESKRIVELSE I SUPPORTING DOC
-# - SE ACCOUNTING YEARS
+# Note: There is a problem in the source data on this block. Accounting year only
+# listed as a single digit. 4 for from and 3 for to. This matches April to March
+# in the other years. However, it is mis-specified in the supporting docs as being
+# 9 characters long, when it is in fact only 6. I've changed it.
 blk_B16_raw <- 
 	asi_tbl %>%
 	filter(year == 2016 & block == "B") %>%
@@ -2110,7 +2112,7 @@ blk_B16_tbl <-
 			"multiplier"
 			),
 		remove = FALSE,
-		sep = c(4, 12, 13, 18, 20, 41, 45, 54, 63, 65, 66, 67, 68, 81)
+		sep = c(4, 12, 13, 18, 20, 41, 45, 51, 57, 59, 60, 61, 62, 75)
 		) %>%
 	select(-X1)
 
@@ -2199,7 +2201,7 @@ blk_D16_tbl <-
 # BLOCK E -----------------------------------------------------------------
 blk_E16_raw <- 
 	asi_tbl %>%
-	filter(year == 2015 & block == "E") %>%
+	filter(year == 2016 & block == "E") %>%
 	select(data) %>%
 	unnest(data)
 
@@ -2258,10 +2260,10 @@ blk_F16_tbl <-
 			"exp_building_repair",
 			"exp_other_fixed_assets",
 			"exp_operating",
-			"exp_non_operating",
+			"exp_construction_materials",
 			"insurance",
 			"rent_machinery",
-			"exp_total",
+			"exp_r_and_d",
 			"rent_buildings",
 			"rent_land",
 			"interests_paid",
@@ -2297,18 +2299,18 @@ blk_G16_tbl <-
 			"factory_id",
 			"block", 
 			"nic5code",
-			"income_services",
-			"var_semi_fin",
+			"receipts_man_services",
+			"receipts_non_man_services",
 			"val_electricity_sold",
 			"val_own_construction",
 			"net_balance_goods_resold",
 			"rent_income_machinery",
-			"total_receipts",
+			"var_semi_fin",
 			"rent_income_building",
 			"rent_income_land",
 			"interest_income",
 			"sale_val_goods_resold",
-			"total_subsidies",
+			"other_production_subsidies",
 			"multiplier"
 			),
 		remove = FALSE,
@@ -2423,7 +2425,7 @@ blk_J16_tbl <-
 			"excise_duty",
 			"sales_tax",
 			"others",
-			"total",
+			"subsidy",
 			"per_unit_sale_val",
 			"ex_factory_val",
 			"multiplier"
@@ -2436,7 +2438,6 @@ blk_J16_tbl <-
 # Trim whitespace
 blk_J16_tbl <-
 	blk_J16_tbl %>%
-	map_dfr(str_trim, side = "both")
-
+	map_dfr(str_trim, side = "left")
 
 # -------------------------------------------------------------------------
