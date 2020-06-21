@@ -27,6 +27,8 @@ read_npcms_blocks <- function() {
   ##                        1: READ FILES                        ##
   #################################################################
   
+  print("Reading files.")
+  
   # Get file paths for each individual block (2010-11 to 2015-16)
   asi_files <- list.files(
     path = here("data/external/asi/asi_2010_2016"),
@@ -61,15 +63,20 @@ read_npcms_blocks <- function() {
     )
   
   # Read all blocks to list column
+  #asi_tbl <- asi_tbl %>%
+  #  mutate(
+  #    data = map(file_path, read_csv, col_names = FALSE)
+  #  )
+  
   asi_tbl <- asi_tbl %>%
     mutate(
-      data = map(file_path, read_csv, col_names = FALSE)
+      data = map(file_path, vroom, delim = ",", col_names = FALSE)
     )
-  
   
   #################################################################
   ##                 2: PREPARE 2010-2011 BLOCKS                 ##
   #################################################################
+  print("Preparing blocks.")
   
   # BLOCK A -----------------------------------------------------------------
   blk_A11_raw <- asi_tbl %>%
@@ -2460,6 +2467,11 @@ read_npcms_blocks <- function() {
   ##                     8: GATHER ALL BLOCKS                     ##
   ##################################################################
   
+  print("Returning blocks.")
+  
+  # Due to memory issues (only have 8 GB RAM) I finesse the returning.
+  # I save the data in data/temp and return just the file path.
+  
   # Get vector of name of all tbl's with prepped blocks
   index <- str_detect(
     string = ls(),
@@ -2467,6 +2479,9 @@ read_npcms_blocks <- function() {
   )
   
   block_list <- mget(ls()[index])
+  
+  # Free up memory by removing old objects
+  rm(list = ls()[ls() != "block_list"])
   
   # Read them into a list column and add indexing:
   # 1: Create function to extract year or block
@@ -2496,8 +2511,12 @@ read_npcms_blocks <- function() {
       year = map_chr(data, get_year_block, extract = "year"),
       block = map_chr(data, get_year_block, extract = "block")
     )
-  
-  # Free up memory by removing old objects
-  rm(list = ls()[ls() != "all_blocks_tbl"])
-  
-}
+ 
+  rm("block_list")
+
+  file_path <- here("data/temp/npcms_blocks_raw.rds")
+
+  saveRDS(all_blocks_tbl, file_path)
+
+  return("file_path")
+} 
