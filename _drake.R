@@ -9,3 +9,7 @@ lapply(list.files("./R", full.names = TRUE), source)
 ## culprits of this seem to be interactive graphics e.g. plotly and mapdeck.
 drake_config(the_plan,
              lock_envir = FALSE)
+
+drake::drake_cache("/home/post/university/poor_countries_simple_products/.drake")$unlock()
+
+make(the_plan)

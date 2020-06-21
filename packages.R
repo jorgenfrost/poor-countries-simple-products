@@ -26,4 +26,6 @@ library(texreg) # easy regression tables
 conflicted::conflict_prefer("filter", "dplyr")
 conflicted::conflict_prefer("gather", "tidyr")
 conflicted::conflict_prefer("lag", "dplyr")
+conflicted::conflict_prefer("map", "purrr")
+
 
