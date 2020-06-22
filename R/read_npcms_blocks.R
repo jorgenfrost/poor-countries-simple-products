@@ -2518,5 +2518,5 @@ read_npcms_blocks <- function() {
 
   saveRDS(all_blocks_tbl, file_path)
 
-  return("file_path")
+  return(file_path)
 } 

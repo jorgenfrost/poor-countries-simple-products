@@ -1,8 +1,18 @@
+#' This function takes all the individual ASI blocks, selects variables,
+#' fixes variable types, and merges data frames based on their block letter
+#' (so that all "block A"-data frames becomes one, etc). Returns a list of 
+#' the merge blocks.
+#' 
+#' @param file_path A string containing the path to the ASI blocks in .RDS 
+#' format.
+#' 
+#' @return a list of data frames, where each data frame contains all the data 
+#' from a specific block (A, B, C, etc).
 
+clean_asi_blocks <- function(file_path) {
 
-clean_asi_blocks <- function() {
 npcms_blocks <- 
-  readRDS(here("data/temp/npcms_blocks_raw.rds"))
+  readRDS(file_path)
 
 # TODO: Change when ASICC blocks are provided
 asi_blocks <- npcms_blocks
@@ -11,7 +21,7 @@ asi_blocks <- npcms_blocks
 ##                     X: SELECT VARIABLES                     ##
 #################################################################
 
-# Create function that selects the variables I want from each block
+# Create function that selects the variables I from a list of variable names.
 select_block_vars <- function(df, var_list) {
   
   # for each data frame the blk is the same across all obs.
@@ -87,7 +97,7 @@ block_variable_list <- list(
     "wages",
     "multiplier"
   ),
-  #	    F = c(
+  #	 F = c( 
   #      ),
   #      G = c(
   #      ),
@@ -96,6 +106,7 @@ block_variable_list <- list(
     "factory_id",
     "block",
     "sno",
+    "qty_consumed",
     "item_code",
     "purchase_val",
     "multiplier"
@@ -105,6 +116,7 @@ block_variable_list <- list(
     "factory_id",
     "block",
     "sno",
+    "qty_consumed",
     "item_code",
     "purchase_val",
     "multiplier"
@@ -156,7 +168,8 @@ numeric_vars <-
     "w_cap_closing", # BLOCK D STOPS
     "avg_person_worked", # BLOCK E STARTS
     "wages", # BLOCK E STOPS
-    "purchase_val", # BLOCK H, I STARTS, STOPS
+    "purchase_val", # BLOCK H, I STARTS
+    "qty_consumed", # BLOCK H, I STOPS
     "qty_sold", # BLOCK J STARTS
     "gross_sale_val" # BLOCK J STOPS
   )
@@ -173,6 +186,9 @@ asi_blocks <-
   )
 
 # GATHER BLOCKS -----------------------------------------------------------
+
+# Merge all similar blocks to one data set (so that all block A's become one 
+# block A, etc).
 
 # BLOCK A
 block_a_tbl <-
@@ -237,4 +253,13 @@ block_j_tbl <-
   select(data) %>%
   unnest(data)
 
+# Add all blocks together in a list
+index <- str_detect(
+    string = ls(),
+    pattern = "block_[a-z]_tbl"
+  )
+
+  block_list <- mget(ls()[index])
+
+  return(block_list)
 }
