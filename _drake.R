@@ -10,6 +10,6 @@ lapply(list.files("./R", full.names = TRUE), source)
 drake_config(the_plan,
              lock_envir = FALSE)
 
-drake::drake_cache("/home/post/university/poor_countries_simple_products/.drake")$unlock()
+# drake::drake_cache("/home/post/university/poor_countries_simple_products/.drake")$unlock()
 
 make(the_plan)
