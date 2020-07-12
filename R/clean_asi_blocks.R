@@ -128,6 +128,7 @@ block_variable_list <- list(
     "sno",
     "item_code",
     "qty_sold",
+    "ex_factory_val",
     "gross_sale_val",
     "multiplier"
   )
@@ -171,6 +172,7 @@ numeric_vars <-
     "purchase_val", # BLOCK H, I STARTS
     "qty_consumed", # BLOCK H, I STOPS
     "qty_sold", # BLOCK J STARTS
+    "ex_factory_val",
     "gross_sale_val" # BLOCK J STOPS
   )
 

@@ -11,6 +11,7 @@ the_plan <-
       pop_data = file_in("data/external/pop_international/population_total.csv"),
       min_year = 1998
     ),
+    # TODO: Clean enterprise surveys
     
     # Read, clean ASI data and get base sample ----------------------
     
@@ -56,15 +57,30 @@ the_plan <-
 	    source = "rpca",
 	    rpca_data = rpca_tbl
 	    ),
-    # TODO:           plant_complexity_tbl = get_plant_complexity(
-    #                   complexity = pci_tbl,
-    #                   output = hs96_output_tbl
-    #                   ),
-    
+    lenient_plant_pci_tbl = get_plant_complexity(
+	    output_tbl = hs96_output_tbl,
+	    rca_pci_tbl = own_rca_pci_tbl,
+	    rpca_pci_tbl = own_rpca_pci_tbl,
+	    product_match = "lenient"
+	    ),
+    strict_plant_pci_tbl = get_plant_complexity(
+	    output_tbl = hs96_output_tbl,
+	    rca_pci_tbl = own_rca_pci_tbl,
+	    rpca_pci_tbl = own_rpca_pci_tbl,
+	    product_match = "strict"
+	    ),
+
     # Clean power data ----------------------------------------------
     energy_supply_tbl = clean_energy_supply()
     
     # Prepare analysis ----------------------------------------------
     # Perform analysis ----------------------------------------------
     # Robustness checks ---------------------------------------------
+    # Create figures ------------------------------------------------
+
+    # TODO: Distribution of plant complexity in strict vs lenient matches
+    # TODO: 
+
+
+
   )
