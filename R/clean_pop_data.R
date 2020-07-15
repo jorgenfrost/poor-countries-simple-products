@@ -16,7 +16,7 @@ clean_pop_data <- function(pop_data, min_year) {
   # population data is in the usual terrible format from the WDI. I make it tidy.
   
   pop_tbl <-
-	  pop_raw %>%
+    pop_raw %>%
     select(-c(`Indicator Name`, `Indicator Code`)) %>%
     gather(-c(`Country Name`, `Country Code`), key = year, value = pop) %>%
     clean_names(case = "snake") %>%

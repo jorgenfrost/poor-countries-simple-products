@@ -9,18 +9,18 @@ clean_export_data <- function(
   min_year = 2000,
   unreliable_countries = c("IRQ", "AFG", "TCD"),
   removed_prods = c(
-      "9999", # unspecified products
-      "XXXX", # unaccounted for
-      "financial", # financial services
-      "travel", # travel services
-      "transport", # transport services
-      "ict", # information technology services
-      "2527", # falls to zero trade during the sample
-      "1403", # same as above
-      "9704" # same as above (postal stamps)
-    ),
+    "9999", # unspecified products
+    "XXXX", # unaccounted for
+    "financial", # financial services
+    "travel", # travel services
+    "transport", # transport services
+    "ict", # information technology services
+    "2527", # falls to zero trade during the sample
+    "1403", # same as above
+    "9704" # same as above (postal stamps)
+  ),
   only_services = c("BWA", "NAM", "SWZ") # relevant for Harvard Data, not BACI
-  ) {
+) {
   
   # this function filters, cleans, and balances hs96 trade data from min_year to
   # 2017. The data is from the BACI database, but distributed bythe Observatory 
@@ -57,19 +57,19 @@ clean_export_data <- function(
   } else {
     stop("Error: pop_data is not a character string or a data frame.")
   }
-
+  
   filter_values <- list(
-			"ref_year" = ref_year,
-			"min_pop" = min_pop,
-			"min_total_export" = min_total_export,
-			"min_year" = min_year,
-			"unreliable_countries" = unreliable_countries,
-			"removed_prods" = removed_prods,
-			"only_services" = only_services
-			)
+    "ref_year" = ref_year,
+    "min_pop" = min_pop,
+    "min_total_export" = min_total_export,
+    "min_year" = min_year,
+    "unreliable_countries" = unreliable_countries,
+    "removed_prods" = removed_prods,
+    "only_services" = only_services
+  )
   
   hs96_tbl <-
-	  hs96_raw %>%
+    hs96_raw %>%
     mutate(
       country_code = str_to_upper(origin),
       export_value = as.numeric(export_val)

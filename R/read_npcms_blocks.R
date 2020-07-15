@@ -22,7 +22,7 @@ read_npcms_blocks <- function() {
   # 6: Prepare 2014-2015 files
   # 7: Prepare 2015-2016 files
   # 8: Gather all blocks
-
+  
   # Note: The data corresponds t othe Indian financial year, that is, beginning of April to end of March. I set the year variable as the "April-year". For example, the data covering April-2013 to March-2014 is listed as 2013.
   
   #################################################################
@@ -2485,9 +2485,9 @@ read_npcms_blocks <- function() {
   # Free up memory by removing old objects
   rm(list = ls()[ls() != "block_list"])
   
-
-
-
+  
+  
+  
   # Read them into a list column and add indexing:
   
   # 0: Write small function that fixes the year variable in all blocks.
@@ -2495,17 +2495,17 @@ read_npcms_blocks <- function() {
   # March-2013) is listed as the end year (2013). It should be 2012. It makes
   # more sense (since more months are in the early year) and that is how the
   # the energy data is listed. I change it.
-
+  
   fix_year <- function(tbl) {
     tbl <- tbl %>%
-	    mutate(year = as.numeric(year) - 1)
+      mutate(year = as.numeric(year) - 1)
     
     return(tbl)
   }
-
+  
   # 1: Create function to extract year or block
   get_year_block <- function(tbl, extract) {
-	
+    
     year <- 
       tbl %>%
       distinct(year) %>%
@@ -2523,7 +2523,7 @@ read_npcms_blocks <- function() {
     }
   }
   
-
+  
   # 2: Apply function
   all_blocks_tbl <- 
     tibble(name = names(block_list), data = block_list) %>%
@@ -2532,14 +2532,12 @@ read_npcms_blocks <- function() {
       year = map_chr(data, get_year_block, extract = "year"),
       block = map_chr(data, get_year_block, extract = "block")
     )
-
- 
-
+  
   rm("block_list")
-
+  
   file_path <- here("data/temp/npcms_blocks_raw.rds")
-
+  
   saveRDS(all_blocks_tbl, file_path)
-
+  
   return(file_path)
- } 
+} 

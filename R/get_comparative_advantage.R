@@ -84,7 +84,7 @@ get_comparative_advantage <- function(export_data, pop_data, metric, mean_value 
       # This section calculates instead the RCA_CAP over the entire periods. I just take the
       # avg rca_cap for each country over all the years. This is to avoid that
       # "low_complexity" country enters a product and drastically changes its complexity,
-	    # as well as the sourt of "dancing along" the threshold line (rpca >= 1).
+      # as well as the sourt of "dancing along" the threshold line (rpca >= 1).
       
       rpca_tbl <- rpca_tbl %>%
         group_by(country_code, hs_product_code) %>%
