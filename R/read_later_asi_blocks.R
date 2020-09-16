@@ -1,4 +1,4 @@
-#' This function reads the ASI blocks from 2010-2011 to 2015-2016. Blocks are
+#' This function reads the ASI blocks from 2010-11 to 2015-2016. Blocks are
 #' provided separately in .TXT files, and does not contain headers. Instead,
 #' for each block, there are "Supporting files" that lists how many characters
 #' that each variable inside each block contains. This is the information used 
@@ -10,7 +10,7 @@
 #'
 #' @export
 
-read_npcms_blocks <- function() {
+read_later_asi_blocks <- function() {
   
   # Function is organised as follows:
   
@@ -23,24 +23,33 @@ read_npcms_blocks <- function() {
   # 7: Prepare 2015-2016 files
   # 8: Gather all blocks
   
-  # Note: The data corresponds t othe Indian financial year, that is, beginning of April to end of March. I set the year variable as the "April-year". For example, the data covering April-2013 to March-2014 is listed as 2013.
+  # Note: The data corresponds to the Indian financial year, that is, beginning
+  # of April to end of March. I set the year variable as the "April-year".
+  # For example, the data covering April-2013 to March-2014 is listed as 2013.
+  # Confusingly, though, this is the case when I index the early files (for reading in
+  # the files) but not in the later years. This has no bearing on the actual data,
+  # but could make understanding this script a little harder.
   
   #################################################################
   ##                        1: READ FILES                        ##
   #################################################################
   
   print("Reading files.")
-  
+
+
   # Get file paths for each individual block (2010-11 to 2015-16)
-  asi_files <- list.files(
-    path = here("data/external/asi/asi_2010_2016"),
+  asi_files_2010_2015 <- list.files(
+    path = here("data/external/asi/asi_2010_2015"),
     pattern = ".TXT",
     full.names = TRUE,
     recursive = TRUE
   )
-  
-  # Create index information for raw files
-  asi_tbl <- tibble(file_path = asi_files) %>%
+ 
+
+  # The naming convention in the files is quite differetn.
+  # Here I create index information for raw files for 2010-2015 years.
+  asi_2010_2015_tbl <-
+	  tibble(file_path = asi_files_2010_2015) %>%
     mutate(
       block_year = str_extract(
         file_path,
@@ -56,25 +65,26 @@ read_npcms_blocks <- function() {
       )
     ) %>%
     select(-block_year)
-  
+ 
   # Make all "year" entries into YYYY format (some are in YY).
-  asi_tbl <- asi_tbl %>%
+  asi_2010_2015_tbl <-
+	  asi_2010_2015_tbl %>%
     mutate(
       year = as.numeric(year),
       year = ifelse(year < 20, year + 2000, year)
     )
   
-  # Read all blocks to list column
-  #asi_tbl <- asi_tbl %>%
-  #  mutate(
-  #    data = map(file_path, read_csv, col_names = FALSE)
-  #  )
-  
+  asi_tbl <- 
+	asi_2010_2015_tbl
+
+  # Read all blocks to list column. This makes it easier to clean.
   asi_tbl <- asi_tbl %>%
     mutate(
       data = map(file_path, vroom, delim = ",", col_names = FALSE)
     )
-  
+
+
+
   #################################################################
   ##                 2: PREPARE 2010-2011 BLOCKS                 ##
   #################################################################
@@ -2485,9 +2495,6 @@ read_npcms_blocks <- function() {
   # Free up memory by removing old objects
   rm(list = ls()[ls() != "block_list"])
   
-  
-  
-  
   # Read them into a list column and add indexing:
   
   # 0: Write small function that fixes the year variable in all blocks.
@@ -2497,8 +2504,9 @@ read_npcms_blocks <- function() {
   # the energy data is listed. I change it.
   
   fix_year <- function(tbl) {
-    tbl <- tbl %>%
-      mutate(year = as.numeric(year) - 1)
+    tbl <-
+	    tbl %>%
+	    mutate(year = as.numeric(year) - 1)
     
     return(tbl)
   }
@@ -2535,9 +2543,11 @@ read_npcms_blocks <- function() {
   
   rm("block_list")
   
-  file_path <- here("data/temp/npcms_blocks_raw.rds")
+  file_path <- here("data/temp/later_blocks_raw.rds")
   
   saveRDS(all_blocks_tbl, file_path)
   
   return(file_path)
-} 
+}
+
+

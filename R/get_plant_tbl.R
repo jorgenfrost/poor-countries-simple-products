@@ -7,21 +7,28 @@
 #' @return A data frame (plant_tbl) containing plant specific observations.
 #' @export
 
-# For testing:
-# block_list <- readd("asi_blocks_clean")
-# wpi_index <- readd("wpi_tbl")
+#  For testing:
+  block_list_path <- here(file_in("data/temp/asi_blocks_clean.rds"))
+  wpi_index <- readd("wpi_tbl")
 
-get_plant_tbl <- function(block_list, wpi_index) {
+get_plant_tbl <- function(block_list_path, wpi_index) {
   
   #################################################################
   ##                        1: CLEAN DATA                        ##
   #################################################################
   
+	block_list <- 
+		readRDS(block_list_path)
+
   ##---------------------------------------------------------------
   ##                              ID                              -
   ##---------------------------------------------------------------
   
-  block_a_tbl <- block_list$block_a_tbl
+  block_a_tbl <- 
+	  block_list %>%
+	  filter(block == "A") %>%
+	  select(data) %>% 
+	  unnest(data)
   
   id_tbl <- 
     block_a_tbl %>%
@@ -32,6 +39,7 @@ get_plant_tbl <- function(block_list, wpi_index) {
   # to fix it. Correct state names is supplied with the panel data. The 6th and
   # 7th character in factory_id lists the state code. I use this code to assign
   # state names.
+
   id_tbl <-
     id_tbl %>%
     mutate(
@@ -100,7 +108,19 @@ get_plant_tbl <- function(block_list, wpi_index) {
       )
     ) %>%
     select(-c(old_states, new_states, old_state_name, new_state_name))
-  
+ 
+# At the moment, states have uniform codes, but different names in the two periods.
+# For many plots, I want to use the names for easier viewing. I use the final state
+# scheme as labels.
+
+state_lbl_tbl <-  
+	state_names_12_to_15 %>%
+	select(state_label = new_state_name, codes)
+
+id_tbl <-
+	id_tbl %>%
+	left_join(state_lbl_tbl, by = c("state_code" = "codes")) 
+
   ##----------------------------------------------------------------
   ##                            REVENUES                           -
   ##----------------------------------------------------------------
@@ -468,6 +488,7 @@ get_plant_tbl <- function(block_list, wpi_index) {
   plant_tbl <- 
 	  plant_tbl %>%
 	  filter(unit_status == 1) %>% # Remove non-open factories
+	  filter(adj_revenue >= 0) %>% # remove plants that do not report revenue
 	  filter((rev_share_flags + change_flags) < 2) # Remove observations that have two or more flags (rev_share and change flags combined)
 
  # TODO: CONSIDERATIONS: should observations w/o electricity use be included?

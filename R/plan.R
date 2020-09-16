@@ -21,16 +21,27 @@ the_plan <-
     # Read and clean ASI data  --------------------------------------
     
     # Clean blocks
-    npcms_blocks_raw = read_npcms_blocks(),
+    earlier_blocks_raw = read_earlier_asi_blocks(
+		 early_2000_2007_file_path = file_out("data/temp/early_blocks_2000_2007_raw.rds"),
+		 early_2008_file_path = file_out("data/temp/early_blocks_2008_raw.rds"),
+		 early_2009_file_path = file_out("data/temp/early_blocks_2009_raw.rds")
+	    ),
+    later_blocks_raw = read_later_asi_blocks(),
     asi_blocks_clean = clean_asi_blocks(
-      file_path = file_in("data/temp/npcms_blocks_raw.rds")
-    ),
+		 late_file_path = file_in("data/temp/later_blocks_raw.rds"),
+		 early_2000_2007_file_path = file_in("data/temp/early_blocks_2000_2007_raw.rds"),
+		 early_2008_file_path = file_in("data/temp/early_blocks_2008_raw.rds"),
+		 early_2009_file_path = file_in("data/temp/early_blocks_2009_raw.rds"),
+		 out_path = file_out("data/temp/asi_blocks_clean.rds")
+
+         ),
     
     # Get plant-level data (one obs per plant)
-    plant_ls = get_plant_tbl(
-                       block_list = asi_blocks_clean,
-		       wpi_index = wpi_tbl
-		       ),
+ # TODO:
+ #     plant_ls = get_plant_tbl(
+ #                        block_list_path = file_out("data/temp/asi_blocks_clean.rds")
+ #                        wpi_index = wpi_tbl
+ #                        ),
     
     # Get plant complexity ------------------------------------------
     
@@ -48,9 +59,10 @@ the_plan <-
       pop_data = pop_tbl,
       metric = "rpca"
     ),
-    hs96_output_tbl = get_hs96_products(
-      block_j_tbl = asi_blocks_clean$block_j_tbl
-    ),
+# TODO:
+#     hs96_output_tbl = get_hs96_products(
+#       block_j_tbl = asi_blocks_clean$block_j_tbl
+#     ),
     oec_pci_tbl = get_pci(
       source = "oec",
       oec_data = file_in("data/external/oec/pci_hs4_hs96_98-18.csv")
@@ -75,17 +87,32 @@ the_plan <-
       rpca_pci_tbl = own_rpca_pci_tbl,
       product_match = "strict"
     ),
-    
+
+    # Finalize base sample ------------------------------------------
+#     base_sample_tbl = get_base_sample(
+#             plant_tbl = plant_ls$plant_tbl,
+#             pci_tbl = lenient_plant_pci_tbl
+#             ),
+
     # Clean power data ----------------------------------------------
-    energy_supply_tbl = clean_energy_supply()
+    energy_supply_tbl = clean_energy_supply(),
     
     # Prepare analysis ----------------------------------------------
     # Perform analysis ----------------------------------------------
     # Robustness checks ---------------------------------------------
     # Create figures ------------------------------------------------
-    
+    strict_lenient_pci_plot = plot_strict_vs_lenient_pci(
+	    strict_plant_pci = strict_plant_pci_tbl,
+	    lenient_plant_pci = lenient_plant_pci_tbl,
+	    plant_tbl = plant_ls$plant_tbl
+	    ),    
+    shortage_dist_plot = plot_shortage_distribution(
+	    shortage_tbl = energy_supply_tbl
+	    ),
+
     # TODO: Distribution of plant complexity in strict vs lenient matches
     # TODO: Distribution of plant complexity in different states
     # TODO: Distribution of product complexity
     
   )
+

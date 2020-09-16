@@ -17,6 +17,17 @@
 #' 
 #' @export
 
+# For testing
+#   old_avg_raw = read_csv(here("data/external/power_supply_position/from_allcott_et_al/EnergyRequirement.csv"))
+#   avg_2003_data = read_csv(here("data/external/power_supply_position/from_allcott_et_al/energy_requirement_2003_data.csv"))
+#   new_cea_files = list.files(
+#     here("data/external/power_supply_position/from_cea/csv/"),
+#     pattern = "*.csv",
+#     full.names = TRUE
+#   )
+#   old_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2016/State Master 1998-99 to 2011-12.xls"), skip = 2)
+#   new_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2016/State Master 2012-13 onwards.xls"), skip = 2) 
+
 clean_energy_supply <- function(
   old_avg_raw = read_csv(here("data/external/power_supply_position/from_allcott_et_al/EnergyRequirement.csv")),
   avg_2003_data = read_csv(here("data/external/power_supply_position/from_allcott_et_al/energy_requirement_2003_data.csv")),
@@ -166,13 +177,19 @@ clean_energy_supply <- function(
   
   avg_tbl <- bind_rows(old_avg_tbl, new_avg_tbl)
   
-  
   avg_tbl <- left_join(avg_tbl, state_scheme_tbl, by = c("state" = "state_name", "state_scheme")) %>%
     rename(state_code = codes) %>%
     select(-state_scheme)
-  
-  
-  
+
+ # Add new state names as the "state_label" to use in plots.
+ state_lbl_tbl <-
+	 new_state_scheme_tbl %>%
+	 select(state_label = state_name, codes)
+
+ avg_tbl <-
+	 avg_tbl %>%
+	 left_join(state_lbl_tbl, by = c("state_code" = "codes"))
+
   # Calculate shortage -------------------------------------------------
   
   # Average avg_shortage

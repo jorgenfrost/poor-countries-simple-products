@@ -9,17 +9,58 @@
 #' @return a list of data frames, where each data frame contains all the data 
 #' from a specific block (A, B, C, etc).
 
-clean_asi_blocks <- function(file_path) {
+# for testing
+#  late_file_path <- here(file_in("data/temp/later_blocks_raw.rds"))
+#  early_2000_2007_file_path <- here(file_in("data/temp/early_blocks_2000_2007_raw.rds"))
+#  early_2008_file_path <- here(file_in("data/temp/early_blocks_2008_raw.rds"))
+#  early_2009_file_path <- here(file_in("data/temp/early_blocks_2009_raw.rds"))
+ # out_path <- here(file_out("data/temp/asi_blocks_clean.rds"))
+
+clean_asi_blocks <- function(
+	late_file_path,
+	early_2000_2007_file_path,
+	early_2008_file_path,
+	early_2009_file_path,
+	out_path
+	) {
   
-  npcms_blocks <- 
-    readRDS(file_path)
+	# A bit of hacky code joining the temporarily saved data sets.
   
-  # TODO: Change when ASICC blocks are provided
-  asi_blocks <- npcms_blocks
+  early_2000_blocks <- 
+    readRDS(early_2000_2007_file_path) %>%
+    select(year, block, data) %>%
+    mutate(panel_structure = "2000")
+
+  early_2008_blocks <- 
+    readRDS(early_2008_file_path) %>%
+    select(year, block, data) %>%
+    mutate(panel_structure = "2008")
+
+  early_2009_blocks <- 
+    readRDS(early_2008_file_path) %>%
+    select(year, block, data) %>%
+    mutate(panel_structure = "2009")
+
+  late_blocks <- 
+    readRDS(late_file_path) %>%
+    mutate(year = as.numeric(year)) %>%
+    select(year, block, data) %>% 
+    mutate(panel_structure = "late")
+
+  asi_blocks <- 
+    bind_rows(
+	    early_2000_blocks,
+	    early_2008_blocks,
+	    early_2009_blocks,
+	    late_blocks
+	    )
+
+  # Remove all the files that are not the joined data.
+  rm(
+	  list = ls()[!ls() %in% c("asi_blocks", "out_path")]
+	  )
   
-  #################################################################
-  ##                     X: SELECT VARIABLES                     ##
-  #################################################################
+ # 1: SELECT VARIABLES ----------------------------------------------
   
   # Create function that selects the variables I from a list of variable names.
   select_block_vars <- function(df, var_list) {
@@ -34,6 +75,8 @@ clean_asi_blocks <- function(file_path) {
       return(df)
     }
     
+    # This is mainly used for easier identifying which block and which vars 
+    # throw error.
     print(str_glue("Now selecting the relevant variables for {current_block} in year {current_year}."))
     print(names(df))
     
@@ -179,6 +222,7 @@ clean_asi_blocks <- function(file_path) {
       "gross_sale_val" # BLOCK J STOPS
     )
   
+  # Make the relevant variables numeric
   asi_blocks <-
     asi_blocks %>%
     mutate(data = map(
@@ -190,45 +234,56 @@ clean_asi_blocks <- function(file_path) {
     )
     )
   
+
+  # Again, due to memory issues that arise in returning the block, I write it to file.
+    saveRDS(
+	    object = asi_blocks,
+	    file = out_path
+	    )
+
+  return("Done")
+
+}
+
   # GATHER BLOCKS -----------------------------------------------------------
   
   # Merge all similar blocks to one data set (so that all block A's become one 
   # block A, etc).
   
   # BLOCK A
-  block_a_tbl <-
-    asi_blocks %>%
-    filter(block == "A") %>%
-    select(data) %>%
-    unnest(data)
+#   block_a_tbl <-
+#     asi_blocks %>%
+#     filter(block == "A") %>%
+#     select(data) %>%
+#     unnest(data)
   
   # BLOCK B
-  block_b_tbl <-
-    asi_blocks %>%
-    filter(block == "B") %>%
-    select(data) %>%
-    unnest(data)
+#   block_b_tbl <-
+#     asi_blocks %>%
+#     filter(block == "B") %>%
+#     select(data) %>%
+#     unnest(data)
   
   # BLOCK C
-  block_c_tbl <-
-    asi_blocks %>%
-    filter(block == "C") %>%
-    select(data) %>%
-    unnest(data)
+#   block_c_tbl <-
+#     asi_blocks %>%
+#     filter(block == "C") %>%
+#     select(data) %>%
+#     unnest(data)
   
   # BLOCK D
-  block_d_tbl <-
-    asi_blocks %>%
-    filter(block == "D") %>%
-    select(data) %>%
-    unnest(data)
-  
+#   block_d_tbl <-
+#     asi_blocks %>%
+#     filter(block == "D") %>%
+#     select(data) %>%
+#     unnest(data)
+#   
   # BLOCK E
-  block_e_tbl <-
-    asi_blocks %>%
-    filter(block == "E") %>%
-    select(data) %>%
-    unnest(data)
+#   block_e_tbl <-
+#     asi_blocks %>%
+#     filter(block == "E") %>%
+#     select(data) %>%
+#     unnest(data)
   
   # BLOCK F
   # block_f_tbl <-
@@ -238,33 +293,31 @@ clean_asi_blocks <- function(file_path) {
   #         unnest(data)
   
   # BLOCK H
-  block_h_tbl <-
-    asi_blocks %>%
-    filter(block == "H") %>%
-    select(data) %>%
-    unnest(data)
-  
+#   block_h_tbl <-
+#     asi_blocks %>%
+#     filter(block == "H") %>%
+#     select(data) %>%
+#     unnest(data)
+#   
   # BLOCK I
-  block_i_tbl <-
-    asi_blocks %>%
-    filter(block == "I") %>%
-    select(data) %>%
-    unnest(data)
-  
+#   block_i_tbl <-
+#     asi_blocks %>%
+#     filter(block == "I") %>%
+#     select(data) %>%
+#     unnest(data)
+#   
   # BLOCK J
-  block_j_tbl <-
-    asi_blocks %>%
-    filter(block == "J") %>%
-    select(data) %>%
-    unnest(data)
-  
+#   block_j_tbl <-
+#     asi_blocks %>%
+#     filter(block == "J") %>%
+#     select(data) %>%
+#     unnest(data)
+#   
   # Add all blocks together in a list
-  index <- str_detect(
-    string = ls(),
-    pattern = "block_[a-z]_tbl"
-  )
+#   index <- str_detect(
+#     string = ls(),
+#     pattern = "block_[a-z]_tbl"
+#   )
+#   
+#   block_list <- mget(ls()[index])
   
-  block_list <- mget(ls()[index])
-  
-  return(block_list)
-}
