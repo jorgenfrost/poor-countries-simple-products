@@ -12,6 +12,12 @@
 #' @return Data frame with the plant complexity values.
 #' @export
 
+# For testing:
+# output_tbl <- readd("hs96_output_tbl")
+# rca_pci_tbl <- readd("own_rca_pci_tbl")
+# rpca_pci_tbl <- readd("own_rpca_pci_tbl")
+# product_match <- "lenient"
+
 get_plant_complexity <- function(output_tbl, rca_pci_tbl, rpca_pci_tbl, product_match) {
   
   # Prepare data ----------------------------------------------
@@ -24,7 +30,7 @@ get_plant_complexity <- function(output_tbl, rca_pci_tbl, rpca_pci_tbl, product_
     rpca_pci_tbl %>%
     rename(rpca_pci = pci)
   
-  pci_tbl <- left_join(rca_pci_tbl, rpca_pci_tbl)
+  pci_tbl <- full_join(rca_pci_tbl, rpca_pci_tbl)
   
   
   # Attach product complexity values
@@ -54,6 +60,7 @@ get_plant_complexity <- function(output_tbl, rca_pci_tbl, rpca_pci_tbl, product_
   # Calculate weighted average complexity
   
   # share of product in total value
+    # Ex-factory is the value leaving the factory gate
   output_tbl <- 
     output_tbl %>%
     group_by(year, factory_id) %>%
@@ -76,9 +83,8 @@ get_plant_complexity <- function(output_tbl, rca_pci_tbl, rpca_pci_tbl, product_
     )
   
   plant_complexity_tbl <-
-    left_join(max_pci_tbl, avg_pci_tbl)
+    full_join(max_pci_tbl, avg_pci_tbl)
   
   return(plant_complexity_tbl)
   
 }
-

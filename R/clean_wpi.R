@@ -16,7 +16,6 @@
 
 clean_wpi <- function(wpi_1993_94_path, wpi_2004_05_path, linking_table_path) {
   
-  
   # CLEAN 1993-1994 index ---------------------------------------------
   # Read 1993
   wpi93_raw <-

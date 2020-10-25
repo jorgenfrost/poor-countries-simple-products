@@ -10,10 +10,10 @@
 #' from a specific block (A, B, C, etc).
 
 # for testing
-#  late_file_path <- here(file_in("data/temp/later_blocks_raw.rds"))
-#  early_2000_2007_file_path <- here(file_in("data/temp/early_blocks_2000_2007_raw.rds"))
-#  early_2008_file_path <- here(file_in("data/temp/early_blocks_2008_raw.rds"))
-#  early_2009_file_path <- here(file_in("data/temp/early_blocks_2009_raw.rds"))
+#   late_file_path <- here(file_in("data/temp/later_blocks_raw.rds"))
+#   early_2000_2007_file_path <- here(file_in("data/temp/early_blocks_2000_2007_raw.rds"))
+#   early_2008_file_path <- here(file_in("data/temp/early_blocks_2008_raw.rds"))
+#   early_2009_file_path <- here(file_in("data/temp/early_blocks_2009_raw.rds"))
  # out_path <- here(file_out("data/temp/asi_blocks_clean.rds"))
 
 clean_asi_blocks <- function(
@@ -37,7 +37,7 @@ clean_asi_blocks <- function(
     mutate(panel_structure = "2008")
 
   early_2009_blocks <- 
-    readRDS(early_2008_file_path) %>%
+    readRDS(early_2009_file_path) %>%
     select(year, block, data) %>%
     mutate(panel_structure = "2009")
 

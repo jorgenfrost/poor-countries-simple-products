@@ -10,16 +10,31 @@
 #' 
 #' @export
 
-# For testing
-# block_ls <- readd("asi_blocks_clean")
-# block_j_tbl <- block_ls$block_j_tbl
+# TODO: Perform quality check
 
-get_hs96_products <- function(block_j_tbl) {
+# For testing
+block_ls_path <- "data/temp/asi_blocks_clean.rds"
+
+get_hs96_products <- function(block_ls_path) {
   
   # Prepare block J
-  
+	block_ls <- readRDS(block_ls_path)
+	block_j_tbl <- 
+		block_ls %>%
+		filter(block == "J") %>% 
+		select(data) %>%
+		unnest(data)
+
+	rm(block_ls)
+
+
+  # Remove products with qty sold = 0.
+	block_j_tbl <- block_j_tbl %>%
+		filter(qty_sold > 0)
+
+	# The product classiciation change in 2010.
   npcms_years <- 2010:2015
-  asicc_years <- 1999:2009
+  asicc_years <- 2000:2009
   
   block_j_tbl <- 
     block_j_tbl %>%
@@ -34,23 +49,28 @@ get_hs96_products <- function(block_j_tbl) {
   # Remove non-products and totals -------------------------------------
   
   # NPCMS:
+  # 10-11, 11-12, 12-13, 13-14, 14-15, 15-16:
   # Other products/by-products = 9921100
   # Total = 9995000
+  # Products = sno = 1-10
   
   # ASICC:
-  # ?
-  # ?
+  # 99-00, 00-01, 01-02, 02-03, 03-04, 04-05, 05-06, 06-07, 07-08, 08-09, 09-10:
+  # Other Products/ By-Products = 99211, 
+  # Total (1 to 11) = 99950
+  # Products: sno = 1-10.
   
   block_j_tbl <- 
     block_j_tbl %>%
     mutate(
       non_product = case_when(
         code_scheme == "npcms" & (item_code == "9921100" | item_code == "9995000") ~ 1,
-        # TODO: 		code_scheme == "asicc" & (item_code == "?" | item_code == "?"),
+	code_scheme == "asicc" & (item_code == "99211" | item_code == "99950") ~1,
         TRUE ~ 0
       )
     ) %>%
-    filter(non_product != 1) %>%
+    filter(non_product != 1) %>% # remove non-products based on code
+    filter(sno %in% 1:10) %>% # remove non-products based on sno
     select(-non_product)
   
   # Add product concordances -------------------------------------------
@@ -60,13 +80,24 @@ get_hs96_products <- function(block_j_tbl) {
   hs07_hs96_tbl <- get_hs07_hs96_concordance()
   
   
-  # Convert ASICC years to CPC-2
-  # TODO: waiting for data
-  
   # Convert to CPC-2 --------------------------------------------------
   # Remove last two digits (which are "india specific").
-  # TODO: 
-  asicc_tbl <- NULL
+
+  # Convert ASICC years to CPC-2
+  asicc_cpc2_tbl <- 
+	  asicc_cpc2_tbl %>%
+	  select(
+		 asicc_code,
+		 strict_cpc2,
+		 lenient_cpc2
+		 ) %>%
+	  distinct()
+
+	  asicc_tbl <-
+		  block_j_tbl %>%
+		  filter(code_scheme == "asicc") %>%
+		  left_join(asicc_cpc2_tbl, 
+			    by = c("item_code" = "asicc_code"))
   
   npcms_tbl <-
     block_j_tbl %>%
@@ -93,7 +124,6 @@ get_hs96_products <- function(block_j_tbl) {
   
   output_tbl <-
     left_join(output_tbl, strict_cpc2_hs07_tbl, by = c("strict_cpc2" = "cpc2_code"))
-  
   
   # Create lenient matches
   lenient_cpc2_hs07_tbl <- 
@@ -124,11 +154,6 @@ get_hs96_products <- function(block_j_tbl) {
   
   output_tbl <- 
     left_join(output_tbl, lenient_hs07_hs96_tbl, by = c("lenient_hs07" = "hs07_code"))
-  
-  
-  
-  # TODO: Do quality check by comparing the products of factories observed in last ASICC year and 
-  # first NPCMS year
   
   # Return
   output_tbl <-

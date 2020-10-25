@@ -12,6 +12,10 @@
 #' 
 #' @export
 
+# For test
+#   asicc_to_cpc2_raw_path = here::here("data/external/concordance_tables/products/asicc_to_npcms11_raw.csv")
+#   cpc2_table_path = here::here("data/external/concordance_tables/products/CPC_Ver_2_english_structure.txt")
+
 get_asicc_cpc2_concordance <- function(
   asicc_to_cpc2_raw_path = here::here("data/external/concordance_tables/products/asicc_to_npcms11_raw.csv"),
   cpc2_table_path = here::here("data/external/concordance_tables/products/CPC_Ver_2_english_structure.txt")
@@ -26,7 +30,7 @@ get_asicc_cpc2_concordance <- function(
   # Read tables -------------------------------------------------------
   
   # Raw concordance table (converted from PDF, supplied by Teju)
-  asicc_to_cpc2_raw <-read_csv(
+  asicc_to_cpc2_raw <- read_csv(
     file = asicc_to_cpc2_raw_path
   ) %>%
     clean_names(case = "snake")
@@ -42,7 +46,8 @@ get_asicc_cpc2_concordance <- function(
   
   # Remove all the rows that are "left over" headers from the
   # pdf to csv conversion + NPCMS-2011 that are "invalid"
-  asicc_to_cpc2_tbl <- asicc_to_cpc2_raw %>%
+  asicc_to_cpc2_tbl <-
+	  asicc_to_cpc2_raw %>%
     filter(asicc_code != "ASICC CODE") %>%
     filter(npcms_2011 != "Invalid")
   
@@ -53,9 +58,10 @@ get_asicc_cpc2_concordance <- function(
   # All observations with more than one NPCMS-2011 match has more than the 10 characters
   # in "0219900(p)". I exploit this.
   
-  asicc_to_cpc2_tbl<- asicc_to_cpc2_tbl %>%
+  asicc_to_cpc2_tbl <- 
+	  asicc_to_cpc2_tbl %>%
     mutate(
-      partial = ifelse(
+      partial_match = ifelse(
         test = str_length(npcms_2011) > 10, 
         yes = 1,
         no = 0
@@ -66,10 +72,11 @@ get_asicc_cpc2_concordance <- function(
   
   #  Create "strict match" - only npcms-11 code for matches, where.
   #  Create "lenient match" column - first match, also for partial.
-  asicc_to_cpc2_tbl <- asicc_to_cpc2_tbl  %>%
+  asicc_to_cpc2_tbl <-
+	  asicc_to_cpc2_tbl  %>%
     mutate(
       strict_npcms_2011 = ifelse(
-        test = partial == 0, 
+        test = partial_match == 0, 
         yes = str_sub(
           string = npcms_2011,
           start = 1,
