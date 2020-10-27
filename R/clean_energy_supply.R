@@ -17,16 +17,21 @@
 #' 
 #' @export
 
+# TODO: Hvordan er år listet? (er 2010 = 2009-2010, 2010-2011?), I ASI er 2010 = 2010-2011
+# CEA data: 2009-2010 = 2009
+# Allcott data: 2009-2010 = 2009 # TODO: CHECK IGEN! 2003 mangler i dataen. Hvorfor? 
+# 2003: 2003-2004 = 2003
+
 # For testing
-#   old_avg_raw = read_csv(here("data/external/power_supply_position/from_allcott_et_al/EnergyRequirement.csv"))
-#   avg_2003_data = read_csv(here("data/external/power_supply_position/from_allcott_et_al/energy_requirement_2003_data.csv"))
-#   new_cea_files = list.files(
-#     here("data/external/power_supply_position/from_cea/csv/"),
-#     pattern = "*.csv",
-#     full.names = TRUE
-#   )
-#   old_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2016/State Master 1998-99 to 2011-12.xls"), skip = 2)
-#   new_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2016/State Master 2012-13 onwards.xls"), skip = 2) 
+#    old_avg_raw = read_csv(here("data/external/power_supply_position/from_allcott_et_al/EnergyRequirement.csv"))
+#    avg_2003_data = read_csv(here("data/external/power_supply_position/from_allcott_et_al/energy_requirement_2003_data.csv"))
+#    new_cea_files = list.files(
+#      here("data/external/power_supply_position/from_cea/csv/"),
+#      pattern = "*.csv",
+#      full.names = TRUE
+#    )
+#    old_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2015/State Master 1998-99 to 2011-12.xls"), skip = 2)
+#    new_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2015/State Master 2012-13 onwards.xls"), skip = 2) 
 
 clean_energy_supply <- function(
   old_avg_raw = read_csv(here("data/external/power_supply_position/from_allcott_et_al/EnergyRequirement.csv")),
@@ -36,8 +41,8 @@ clean_energy_supply <- function(
     pattern = "*.csv",
     full.names = TRUE
   ),
-  old_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2016/State Master 1998-99 to 2011-12.xls"), skip = 2),
-  new_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2016/State Master 2012-13 onwards.xls"), skip = 2) 
+  old_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2015/State Master 1998-99 to 2011-12.xls"), skip = 2),
+  new_state_scheme_tbl = read_excel(here("data/external/asi/asi_2010_2015/State Master 2012-13 onwards.xls"), skip = 2) 
 ) {
   
   
@@ -69,7 +74,6 @@ clean_energy_supply <- function(
     filter(!state %in% aggr_region) 
   
   # Fix state names --------------------------------------------
-  
   
   # Prepare the state-scheme used in the ASI
   old_state_scheme_years <- 1998:2011 
