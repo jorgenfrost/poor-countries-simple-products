@@ -12,28 +12,26 @@
 
 
 # For testing
-#  strict_plant_pci <- readd("strict_plant_pci_tbl") 
+  strict_plant_pci <- readd("strict_plant_pci_tbl") 
 # 
-#  lenient_plant_pci <- readd("lenient_plant_pci_tbl") 
-# 
-#  plant_tbl <- readd("plant_ls")$plant_tbl
+  lenient_plant_pci <- readd("lenient_plant_pci_tbl") 
+ 
+  base_sample_tbl <- readd("base_sample_tbl")
 
-plot_strict_vs_lenient_pci <- function(strict_plant_pci, lenient_plant_pci, plant_tbl) {
+plot_strict_vs_lenient_pci <- function(strict_plant_pci, lenient_plant_pci, base_sample_tbl) {
 
 # Remove plants removed in filtering
 strict_plant_pci <- 
 	strict_plant_pci %>%
-        mutate(match = "strict") %>%
-	semi_join(plant_tbl) %>%
-	left_join(plant_tbl %>% select(year, factory_id, multiplier))
+        mutate(product_match = "strict") %>%
+	semi_join(base_sample_tbl, by = c("year", "factory_id")) %>%
+	left_join(base_sample_tbl %>% select(year, factory_id, multiplier))
 
 lenient_plant_pci <-
 	lenient_plant_pci %>%
-        mutate(match = "lenient") %>%
-	semi_join(plant_tbl) %>%
-	left_join(plant_tbl %>% select(year, factory_id, multiplier))
-
-
+        mutate(product_match = "lenient") %>%
+	semi_join(base_sample_tbl, by = c("year", "factory_id")) %>%
+	left_join(base_sample_tbl %>% select(year, factory_id, multiplier))
 
 #################################################################
 ##      PLOT STRICT VS LENIENT MATCHES: DIFFERENT METRICS      ##
@@ -44,25 +42,27 @@ wide_plant_pci_tbl <-
 
 long_plant_pci_tbl <-
 	wide_plant_pci_tbl %>%
-	pivot_longer(-c(year, factory_id, match, multiplier), names_to = "metric", values_to = "pci")
+	pivot_longer(-c(year, factory_id, product_match, multiplier), names_to = "metric", values_to = "pci")
 
 
 # DEFINE PLOTTING FUNCTION ------------------------------------------
 make_metric_density_plot <- function(tbl, the_title, x_lab) {
 
 	the_plot <-
-		ggplot(tbl, aes( x = pci, color = match)) +
+		ggplot(tbl, aes(x = pci, color = product_match, weight = multiplier)) +
 		geom_density() +
 		labs(
 		title = the_title,
 		x = x_lab
-		)
-
+		) + 
+		facet_wrap(vars(year))
 
 	the_nice_plot <- 
-		the_plot +
+		(the_plot +
 		theme(plot.title = element_text(size=10)) + 
-		scale_color_manual(values = c("#a50f15", "#253494"), name = "")
+		scale_color_manual(values = c(plot_blue, plot_red), name = "Product match")) %>%
+	apply_theme() +
+	theme(legend.position = "bottom")
 
 	return(the_nice_plot)
 
@@ -71,15 +71,15 @@ make_metric_density_plot <- function(tbl, the_title, x_lab) {
 # RCA AVG -----------------------------------------------------------
 avg_rca_pci_p <-
 	make_metric_density_plot(
-		tbl = long_plant_pci_tbl %>% filter(metric == "avg_rca_pci") %>% uncount(multiplier),
+		tbl = long_plant_pci_tbl %>% filter(metric == "avg_rca_pci"),
 		the_title = "Plant complexity (C), RCA-based",
 		x_lab = TeX("C")
-		)
+		) 
 
 # RCA MAX -----------------------------------------------------------
 max_rca_pci_p <-
 	make_metric_density_plot(
-		tbl = long_plant_pci_tbl %>% filter(metric == "max_rca_pci") %>% uncount(multiplier),
+		tbl = long_plant_pci_tbl %>% filter(metric == "max_rca_pci"),
 		the_title = TeX("Plant complexity (C^{max}), RCA-based"),
 		x_lab = TeX("C^{max}")
 		)
@@ -87,7 +87,7 @@ max_rca_pci_p <-
 # RPCA AVG ----------------------------------------------------------
 avg_rpca_pci_p <-
 	make_metric_density_plot(
-		tbl = long_plant_pci_tbl %>% filter(metric == "avg_rpca_pci") %>% uncount(multiplier),
+		tbl = long_plant_pci_tbl %>% filter(metric == "avg_rpca_pci"),
 		the_title = "Plant complexity (C), RpcA-based",
 		x_lab = TeX("C")
 		)
@@ -95,26 +95,31 @@ avg_rpca_pci_p <-
 # RPCA MAX ----------------------------------------------------------
 max_rpca_pci_p <-
 	make_metric_density_plot(
-		tbl = long_plant_pci_tbl %>% filter(metric == "max_rpca_pci") %>% uncount(multiplier),
+		tbl = long_plant_pci_tbl %>% filter(metric == "max_rpca_pci"),
 		the_title = TeX("Plant complexity (C^{max}), RpcA-based"),
 		x_lab = TeX("C^{max}")
 		)
 
 # Join figures ------------------------------------------------------
-
-different_metrics_joined <- 
+rca_metrics_joined <- 
 	ggarrange(
 		avg_rca_pci_p,
 		max_rca_pci_p,
-		avg_rpca_pci_p,
-		max_rpca_pci_p,
-		common.legend = TRUE
+		common.legend = TRUE,
+		legend = "bottom"
 		)
+
+rpca_metrics_joined <- 
+	ggarrange(
+				 avg_rpca_pci_p,
+				 max_rpca_pci_p,
+				 common.legend = TRUE
+				 )
 
 # Create plots separated by states ----------------------------------
 state_tbl <-
 	long_plant_pci_tbl %>%
-	left_join(plant_tbl) 
+	left_join(base_sample_tbl) 
 
 # Density
 plot_density <- function(tbl, x_lab) {

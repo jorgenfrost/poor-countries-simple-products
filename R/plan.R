@@ -90,14 +90,18 @@ the_plan <-
 								),
 
     # Finalize base sample ------------------------------------------
-#     base_sample_tbl = get_base_sample(
-#             plant_tbl = plant_ls$plant_tbl,
-#             pci_tbl = lenient_plant_pci_tbl
-#             ),
+		    base_sample_tbl = get_base_sample(
+						      plant_tbl = plant_ls$plant_tbl,
+						      value_flag_tbl = plant_ls$value_flag_tbl,
+						      change_flag_tbl = plant_ls$change_flag_tbl,
+						      pci_tbl = lenient_plant_pci_tbl,
+						      path_to_exclusion_overview = file_out("data/temp/base_sample_exclusion_overview.csv")
+						      ),
 
     # Clean power data ----------------------------------------------
+    energy_supply_tbl = clean_energy_supply(),
 		    # TODO: Currently fails:
-#    energy_supply_tbl = clean_energy_supply(),
+#    input_shortage_tbl = get_input_shortage(),
     
     # Prepare analysis ----------------------------------------------
     # Perform analysis ----------------------------------------------
@@ -112,6 +116,11 @@ the_plan <-
 	
 	# TODO: Check if the complexity of plants changes when using gross sale val
 
+        # TODO: Check results by using strict pci 
+        # TODO: Check resutls by using different revenue share flag threshold
+        # TODO: Check results by excluding change flagged obs
+	# TODO: Rerun results using strict pci
+	# TODO: Check results using peak shortage instead
 
     # Create figures ------------------------------------------------
 		    # TODO: Currently fails:

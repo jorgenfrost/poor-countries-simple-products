@@ -19,7 +19,6 @@ library(knitr) # tables
 library(kableExtra) # better tables
 library(sandwich) # robust standard errors
 library(lmtest) # more adv regression stuff
-library(igraph) # working with networks and network graphs
 library(estimatr)
 library(texreg) # easy regression tables
 
@@ -27,5 +26,3 @@ conflicted::conflict_prefer("filter", "dplyr")
 conflicted::conflict_prefer("gather", "tidyr")
 conflicted::conflict_prefer("lag", "dplyr")
 conflicted::conflict_prefer("map", "purrr")
-
-
