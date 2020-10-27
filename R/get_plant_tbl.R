@@ -568,118 +568,119 @@ id_tbl <-
 		   )
 
   # Within plant flags ("change" flags): ------------------------------
-  
-  # Change in revenue
-  revenue_change_flag_tbl <-
-    revenue_tbl %>%
-    mutate(ln_adj_revenue = log(adj_revenue)) %>%
-    group_by(factory_id) %>%
-    arrange(year) %>%
-    mutate(
-      # Positive if higher than prev obs
-      change_from_prev = ln_adj_revenue - lag(ln_adj_revenue), 
-      # Positive if higher than next obs
-      change_from_next = ln_adj_revenue - lead(ln_adj_revenue) 
-    ) %>%
-    mutate(
-      adj_revenue_change_flag = case_when(
-        # if one obs is mistakenly much higher than prev and next
-        change_from_prev >=3.5 & change_from_next >= 3.5 ~ TRUE, 
-        # if one obs is mistakenly much lower than prev and next
-        change_from_prev <=-3.5 & change_from_next <= -3.5 ~ TRUE, 
-        # if first obs is much higher or lower than next obs
-        is.na(lag(ln_adj_revenue)) & (change_from_next >= 3.5 | change_from_next <=-3.5) ~ TRUE, 
-        # if last obs is much higher or lower than prev obs
-        is.na(lead(ln_adj_revenue)) & (change_from_prev >=3.5 | change_from_prev <=-3.5) ~ TRUE, 
-        TRUE ~ FALSE
-      )
-    ) %>%
-    select(
-      year,
-      factory_id,
-      adj_revenue_change_flag
-    )
-  
-  # Change in employees
-  employees_change_flag_tbl <- 
-    labor_tbl %>%
-    mutate(ln_total_employees = log(avg_total_employees)) %>%
-    group_by(factory_id) %>%
-    arrange(year) %>%
-    mutate(
-      change_from_prev = ln_total_employees - lag(ln_total_employees), # Positive if higher than prev obs
-      change_from_next = ln_total_employees - lead(ln_total_employees) # Positive if higher than next obs
-    ) %>%
-    mutate(
-      employees_change_flag = case_when(
-        change_from_prev >=3.5 & change_from_next >= 3.5 ~ TRUE, # if one obs is mistakenly much higher
-        change_from_prev <= -3.5 & change_from_next <= -3.5 ~ TRUE, # if one obs is mistakenly much lower
-        is.na(lag(ln_total_employees)) & (change_from_next >= 3.5 | change_from_next <=-3.5) ~ TRUE, # if first obs is much higher or lower than next obs
-        is.na(lead(ln_total_employees)) & (change_from_prev >=3.5 | change_from_prev <=-3.5) ~ TRUE, # if last obs is much higher or lower than prev obs
-        TRUE ~ FALSE
-      )
-    ) %>%
-    select(
-      year,
-      factory_id,
-      employees_change_flag
-    )
-  
-  # Change in electricity consumed (purchased and self-generated)
-  electricity_change_flag_tbl <- 
-    electricity_tbl %>%
-    mutate(
-      ln_electricity_consumed_kwh = log(electricity_consumed_kwh),
-      ln_electricity_selfgen = log(electricity_self_gen_kwh)
-    ) %>%
-    group_by(factory_id) %>%
-    arrange(year) %>%
-    mutate(
-      purch_change_from_prev = ln_electricity_consumed_kwh - lag(ln_electricity_consumed_kwh), # Positive if higher than prev obs
-      purch_change_from_next = ln_electricity_consumed_kwh - lead(ln_electricity_consumed_kwh), # Positive if higher than next obs
-      selfgen_change_from_prev = ln_electricity_selfgen - lag(ln_electricity_selfgen), # Positive if higher than prev obs
-      selfgen_change_from_next = ln_electricity_selfgen - lead(ln_electricity_selfgen) # Positive if higher than next obs
-    ) %>%
-    mutate(
-      electricity_consumed_change_flag = case_when(
-        purch_change_from_prev >=3.5 & purch_change_from_next >= 3.5 ~ TRUE, # if one obs is mistakenly much higher
-        purch_change_from_prev <=-3.5 & purch_change_from_next <= -3.5 ~ TRUE, # if one obs is mistakenly much lower
-        is.na(lag(ln_electricity_consumed_kwh)) & (purch_change_from_next >= 3.5 | purch_change_from_next <=-3.5) ~ TRUE, # if first obs is much higher or lower than next obs
-        is.na(lead(ln_electricity_consumed_kwh)) & (purch_change_from_prev >=3.5 | purch_change_from_prev <=-3.5) ~ TRUE, # if first obs is much higher or lower than next obs
-        TRUE ~ FALSE
-      ),
-      electricity_selfgen_change_flag = case_when(
-        selfgen_change_from_prev >=3.5 & selfgen_change_from_next >= 3.5 ~ TRUE, # if one obs is mistakenly much higher
-        selfgen_change_from_prev <=-3.5 & selfgen_change_from_next <= -3.5 ~ TRUE, # if one obs is mistakenly much lower
-        is.na(lag(ln_electricity_selfgen)) & (selfgen_change_from_next >= 3.5 | selfgen_change_from_next <=-3.5) ~ TRUE, # if first obs is much higher or lower than next obs
-        is.na(lead(ln_electricity_selfgen)) & (selfgen_change_from_prev >=3.5 | selfgen_change_from_prev <=-3.5) ~ TRUE, # if last obs is much higher or lower than prev obs
-        TRUE ~ FALSE
-      )
-    ) %>%
-    select(
-      year,
-      factory_id,
-      electricity_consumed_change_flag
-    #   electricity_selfgen_change_flag <- not really needed. it should change a lot given the shortages change
-    )
-  
-  # TODO: Change in amount of inputs used - PROBLEM: not adjusted.
-    inputs_change_flag_tbl <-
-	    inputs_tbl %>%
-	    mutate(
-		   ln_total_input_val = log(unadj_total_input_val),
-		   input_val_change_from_prev =  ln_total_input_val - lag(ln_total_input_val), # positive if higher than prev obs 
-		   input_val_change_from_next =  ln_total_input_val - lead(ln_total_input_val), # positive if higher than next obs 
-		   input_val_change_flag = case_when(
-						     input_val_change_from_prev >= 3.5 & input_val_change_from_next >= 3.5 ~ TRUE, # if one obs is much higher 
-						     input_val_change_from_prev <= -3.5 & input_val_change_from_next <= -3.5 ~ TRUE, # if one obs is much higher 
-						     is.na(lag(ln_total_input_val)) & (input_val_change_from_next >= 3.5 | input_val_change_from_next <= -3) ~ TRUE,
-						     is.na(lag(ln_total_input_val)) & (input_val_change_from_prev >= 3.5 | input_val_change_from_prev <= -3) ~ TRUE,
-						     TRUE ~ FALSE
-						     )
-		   ) %>%
-	    select(year, factory_id, input_val_change_flag)
+  # TODO: !!! should ofc not be 3.5 log. 
 
+   # # Change in revenue
+    revenue_change_flag_tbl <-
+      revenue_tbl %>%
+      mutate(ln_adj_revenue = log(adj_revenue)) %>%
+      group_by(factory_id) %>%
+      arrange(year) %>%
+      mutate(
+        # Positive if higher than prev obs
+        change_from_prev = ln_adj_revenue - lag(ln_adj_revenue), 
+        # Positive if higher than next obs
+        change_from_next = ln_adj_revenue - lead(ln_adj_revenue) 
+      ) %>%
+      mutate(
+        adj_revenue_change_flag = case_when(
+          # if one obs is mistakenly much higher than prev and next
+          change_from_prev >=3.5 & change_from_next >= 3.5 ~ TRUE, 
+          # if one obs is mistakenly much lower than prev and next
+          change_from_prev <=-3.5 & change_from_next <= -3.5 ~ TRUE, 
+          # if first obs is much higher or lower than next obs
+          is.na(lag(ln_adj_revenue)) & (change_from_next >= 3.5 | change_from_next <=-3.5) ~ TRUE, 
+          # if last obs is much higher or lower than prev obs
+          is.na(lead(ln_adj_revenue)) & (change_from_prev >=3.5 | change_from_prev <=-3.5) ~ TRUE, 
+          TRUE ~ FALSE
+        )
+      ) %>%
+      select(
+        year,
+        factory_id,
+        adj_revenue_change_flag
+      )
+    
+    # Change in employees
+    employees_change_flag_tbl <- 
+      labor_tbl %>%
+      mutate(ln_total_employees = log(avg_total_employees)) %>%
+      group_by(factory_id) %>%
+      arrange(year) %>%
+      mutate(
+        change_from_prev = ln_total_employees - lag(ln_total_employees), # Positive if higher than prev obs
+        change_from_next = ln_total_employees - lead(ln_total_employees) # Positive if higher than next obs
+      ) %>%
+      mutate(
+        employees_change_flag = case_when(
+          change_from_prev >=3.5 & change_from_next >= 3.5 ~ TRUE, # if one obs is mistakenly much higher
+          change_from_prev <= -3.5 & change_from_next <= -3.5 ~ TRUE, # if one obs is mistakenly much lower
+          is.na(lag(ln_total_employees)) & (change_from_next >= 3.5 | change_from_next <=-3.5) ~ TRUE, # if first obs is much higher or lower than next obs
+          is.na(lead(ln_total_employees)) & (change_from_prev >=3.5 | change_from_prev <=-3.5) ~ TRUE, # if last obs is much higher or lower than prev obs
+          TRUE ~ FALSE
+        )
+      ) %>%
+      select(
+        year,
+        factory_id,
+        employees_change_flag
+      )
+    
+    # Change in electricity consumed (purchased and self-generated)
+    electricity_change_flag_tbl <- 
+      electricity_tbl %>%
+      mutate(
+        ln_electricity_consumed_kwh = log(electricity_consumed_kwh),
+        ln_electricity_selfgen = log(electricity_self_gen_kwh)
+      ) %>%
+      group_by(factory_id) %>%
+      arrange(year) %>%
+      mutate(
+        purch_change_from_prev = ln_electricity_consumed_kwh - lag(ln_electricity_consumed_kwh), # Positive if higher than prev obs
+        purch_change_from_next = ln_electricity_consumed_kwh - lead(ln_electricity_consumed_kwh), # Positive if higher than next obs
+        selfgen_change_from_prev = ln_electricity_selfgen - lag(ln_electricity_selfgen), # Positive if higher than prev obs
+        selfgen_change_from_next = ln_electricity_selfgen - lead(ln_electricity_selfgen) # Positive if higher than next obs
+      ) %>%
+      mutate(
+        electricity_consumed_change_flag = case_when(
+          purch_change_from_prev >=3.5 & purch_change_from_next >= 3.5 ~ TRUE, # if one obs is mistakenly much higher
+          purch_change_from_prev <=-3.5 & purch_change_from_next <= -3.5 ~ TRUE, # if one obs is mistakenly much lower
+          is.na(lag(ln_electricity_consumed_kwh)) & (purch_change_from_next >= 3.5 | purch_change_from_next <=-3.5) ~ TRUE, # if first obs is much higher or lower than next obs
+          is.na(lead(ln_electricity_consumed_kwh)) & (purch_change_from_prev >=3.5 | purch_change_from_prev <=-3.5) ~ TRUE, # if first obs is much higher or lower than next obs
+          TRUE ~ FALSE
+        ),
+        electricity_selfgen_change_flag = case_when(
+          selfgen_change_from_prev >=3.5 & selfgen_change_from_next >= 3.5 ~ TRUE, # if one obs is mistakenly much higher
+          selfgen_change_from_prev <=-3.5 & selfgen_change_from_next <= -3.5 ~ TRUE, # if one obs is mistakenly much lower
+          is.na(lag(ln_electricity_selfgen)) & (selfgen_change_from_next >= 3.5 | selfgen_change_from_next <=-3.5) ~ TRUE, # if first obs is much higher or lower than next obs
+          is.na(lead(ln_electricity_selfgen)) & (selfgen_change_from_prev >=3.5 | selfgen_change_from_prev <=-3.5) ~ TRUE, # if last obs is much higher or lower than prev obs
+          TRUE ~ FALSE
+        )
+      ) %>%
+      select(
+        year,
+        factory_id,
+        electricity_consumed_change_flag
+      #   electricity_selfgen_change_flag <- not really needed. it should change a lot given the shortages change
+      )
+    
+    # TODO: Change in amount of inputs used - PROBLEM: not adjusted.
+      inputs_change_flag_tbl <-
+	      inputs_tbl %>%
+	      mutate(
+		     ln_total_input_val = log(unadj_total_input_val),
+		     input_val_change_from_prev =  ln_total_input_val - lag(ln_total_input_val), # positive if higher than prev obs 
+		     input_val_change_from_next =  ln_total_input_val - lead(ln_total_input_val), # positive if higher than next obs 
+		     input_val_change_flag = case_when(
+						       input_val_change_from_prev >= 3.5 & input_val_change_from_next >= 3.5 ~ TRUE, # if one obs is much higher 
+						       input_val_change_from_prev <= -3.5 & input_val_change_from_next <= -3.5 ~ TRUE, # if one obs is much higher 
+						       is.na(lag(ln_total_input_val)) & (input_val_change_from_next >= 3.5 | input_val_change_from_next <= -3) ~ TRUE,
+						       is.na(lag(ln_total_input_val)) & (input_val_change_from_prev >= 3.5 | input_val_change_from_prev <= -3) ~ TRUE,
+						       TRUE ~ FALSE
+						       )
+		     ) %>%
+	      select(year, factory_id, input_val_change_flag)
+  
   ##---------------------------------------------------------------
   ##                        GATHER FLAG TABLES                    -
   ##---------------------------------------------------------------
@@ -690,11 +691,10 @@ id_tbl <-
     full_join(electricity_flag_tbl) 
  
 change_flag_tbl <-
-	    revenue_change_flag_tbl %>%
-	    full_join(employees_change_flag_tbl) %>%
-	    full_join(electricity_change_flag_tbl) %>%
-	    full_join(inputs_change_flag_tbl) %>%
-	    mutate(change_flags = adj_revenue_change_flag + employees_change_flag + electricity_consumed_change_flag + input_val_change_flag)
+	revenue_change_flag_tbl %>%
+	full_join(employees_change_flag_tbl) %>%
+	full_join(electricity_change_flag_tbl) %>%
+	full_join(inputs_change_flag_tbl) 
 
   plant_tbl <-
 	  id_tbl %>%
@@ -707,14 +707,8 @@ change_flag_tbl <-
   ##                        3: FILTER DATA                        ##
   ##################################################################
 
-  # Remove closed factories
-  plant_tbl <-
-	  plant_tbl %>%
-		  filter(unit_status == 1)
-
   return(list("plant_tbl" = plant_tbl,
 	      "change_flag_tbl" = change_flag_tbl,
 	      "value_flag_tbl" = value_flag_tbl))
 	  
 }
-
