@@ -13,7 +13,7 @@
 # TODO: Perform quality check
 
 # For testing
-block_ls_path <- "data/temp/asi_blocks_clean.rds"
+# block_ls_path <- "data/temp/asi_blocks_clean.rds"
 
 get_hs96_products <- function(block_ls_path) {
   
@@ -68,10 +68,11 @@ get_hs96_products <- function(block_ls_path) {
 	code_scheme == "asicc" & (item_code == "99211" | item_code == "99950") ~1,
         TRUE ~ 0
       )
-    ) %>%
-    filter(non_product != 1) %>% # remove non-products based on code
-    filter(sno %in% 1:10) %>% # remove non-products based on sno
-    select(-non_product)
+    )  %>% 
+    filter(non_product != 1) %>% 
+    filter(sno %in% 1:10) %>%
+    select(-non_product) %>%
+    filter(ex_factory_val > 0 & gross_sale_val > 0 & qty_sold > 0)
   
   # Add product concordances -------------------------------------------
   
